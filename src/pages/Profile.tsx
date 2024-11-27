@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { User, Package, Settings, Camera, Mail, Phone, MapPin, CreditCard } from 'lucide-react';
 import Input from '../components/Input';
+import EditProfileForm from '../components/EditProfileForm';
 
 interface Order {
   id: string;
@@ -12,11 +13,24 @@ interface Order {
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState('profile');
+  const [isEditing, setIsEditing] = useState(false);
   const [personalInfo, setPersonalInfo] = useState({
     name: 'John Doe',
     email: 'john.doe@example.com',
     phone: '+1 (555) 123-4567',
     address: '123 Main St, New York, NY 10001',
+  });
+
+  const [settings, setSettings] = useState({
+    emailNotifications: true,
+    smsNotifications: false,
+    twoFactorAuth: true,
+    newsletter: true
+  });
+
+  const [passwords, setPasswords] = useState({
+    currentPassword: '',
+    newPassword: ''
   });
 
   const orders: Order[] = [
@@ -56,6 +70,27 @@ export default function Profile() {
     }
   ];
 
+  const handleSettingChange = (setting: keyof typeof settings) => {
+    setSettings(prev => ({
+      ...prev,
+      [setting]: !prev[setting]
+    }));
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPasswords(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleProfileSave = (data: typeof personalInfo) => {
+    setPersonalInfo(data);
+    setIsEditing(false);
+    // Here you would typically make an API call to update the user's profile
+  };
+
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
       case 'delivered':
@@ -74,56 +109,73 @@ export default function Profile() {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-semibold text-gray-900">Personal Information</h2>
-              <button className="text-indigo-600 hover:text-indigo-700 font-medium">Edit</button>
-            </div>
-
-            <div className="relative mb-8">
-              <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 mx-auto">
-                <img
-                  src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80"
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
-                <button className="absolute bottom-0 right-1/2 translate-x-1/2 translate-y-1/2 bg-white p-2 rounded-full shadow-lg hover:bg-gray-50">
-                  <Camera className="w-5 h-5 text-gray-600" />
+              {!isEditing && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="text-indigo-600 hover:text-indigo-700 font-medium"
+                >
+                  Edit
                 </button>
-              </div>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <User className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-500">Full Name</p>
-                    <p className="text-gray-900">{personalInfo.name}</p>
+            {isEditing ? (
+              <EditProfileForm
+                initialData={personalInfo}
+                onSave={handleProfileSave}
+                onCancel={() => setIsEditing(false)}
+              />
+            ) : (
+              <>
+                <div className="relative mb-8">
+                  <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 mx-auto">
+                    <img
+                      src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80"
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                    <button className="absolute bottom-0 right-1/2 translate-x-1/2 translate-y-1/2 bg-white p-2 rounded-full shadow-lg hover:bg-gray-50">
+                      <Camera className="w-5 h-5 text-gray-600" />
+                    </button>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-500">Email</p>
-                    <p className="text-gray-900">{personalInfo.email}</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <User className="w-5 h-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-gray-500">Full Name</p>
+                        <p className="text-gray-900">{personalInfo.name}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Mail className="w-5 h-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-gray-500">Email</p>
+                        <p className="text-gray-900">{personalInfo.email}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-5 h-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-gray-500">Phone</p>
+                        <p className="text-gray-900">{personalInfo.phone}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <MapPin className="w-5 h-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-gray-500">Address</p>
+                        <p className="text-gray-900">{personalInfo.address}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-500">Phone</p>
-                    <p className="text-gray-900">{personalInfo.phone}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-500">Address</p>
-                    <p className="text-gray-900">{personalInfo.address}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+              </>
+            )}
 
             <div className="mt-8 border-t border-gray-200 pt-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Methods</h3>
@@ -194,25 +246,31 @@ export default function Profile() {
         return (
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-2xl font-semibold text-gray-900 mb-8">Account Settings</h2>
-            <form className="space-y-6">
+            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
                   label="Email Notifications"
                   type="checkbox"
-                  checked
+                  checked={settings.emailNotifications}
+                  onChange={() => handleSettingChange('emailNotifications')}
                 />
                 <Input
                   label="SMS Notifications"
                   type="checkbox"
+                  checked={settings.smsNotifications}
+                  onChange={() => handleSettingChange('smsNotifications')}
                 />
                 <Input
                   label="Two-Factor Authentication"
                   type="checkbox"
+                  checked={settings.twoFactorAuth}
+                  onChange={() => handleSettingChange('twoFactorAuth')}
                 />
                 <Input
                   label="Newsletter Subscription"
                   type="checkbox"
-                  checked
+                  checked={settings.newsletter}
+                  onChange={() => handleSettingChange('newsletter')}
                 />
               </div>
               <div className="border-t border-gray-200 pt-6">
@@ -221,10 +279,16 @@ export default function Profile() {
                   <Input
                     label="Current Password"
                     type="password"
+                    name="currentPassword"
+                    value={passwords.currentPassword}
+                    onChange={handlePasswordChange}
                   />
                   <Input
                     label="New Password"
                     type="password"
+                    name="newPassword"
+                    value={passwords.newPassword}
+                    onChange={handlePasswordChange}
                   />
                 </div>
               </div>
